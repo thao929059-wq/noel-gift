@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 Noel Yêu Thương 🎄</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: #001428;
+        }
+        
+        #canvas {
+            display: block;
+            margin: 0 auto;
+            background: #001428;
+            max-width: 100%;
+            height: 100vh;
+        }
+        
+        #letterModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #letterContent {
+            background: #fff8dc;
+            border: 3px solid #d2b48c;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            color: #5b3a29;
+            font-size: 16px;
+            line-height: 1.6;
+            animation: zoomIn 0.4s ease-out;
+            position: relative;
+        }
+        
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        #closeBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        #closeBtn:hover {
+            background: darkred;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div id="letterModal">
+        <div id="letterContent">
+            <p id="wishText"></p>
+            <button id="closeBtn">❌ Đóng thư</button>
+        </div>
+    </div>
+
+    <script>
+        const wishes = [
+            "Chúc em luôn hạnh phúc và mỉm cười mỗi ngày ❤️",
+            "Cảm ơn em đã đến bên anh 🎁",
+            "Mong rằng chúng ta sẽ luôn bên nhau 🎄",
+            "Noel này và mọi Noel sau đều có em ✨",
+            "Yêu em nhiều hơn những gì anh nói 💖",
+            "Noel mọi năm đều gần lịch thi hoặc ngay lúc thi nên anh với em chưa đi chơi Noel đúng ngày được, chúc em thi tốt đạt thành quả xuất sắc nhaaa 📚✨",
+            "Anh luôn yêu em, sẽ cố gắng thay đổi làm cho em dui hơn và mong em cũng yêu anh nhìu nhìu 🥰",
+            "Vì học IT nhưng chuyên ngành bên Logistic nên code dỡ lắm, cố lắm gòi hong được lãng mạn mấy hihi 😆",
+            "Chỉ cần mỗi ngày có em bên cạnh là anh đã vui rồi 🎄❤️",
+            "Mong sau này 4 mùa, anh đều được nắm tay em đi dạo khắp phố 🎁✨"
+        ];
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            const width = Math.min(500, window.innerWidth);
+            const height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Stars
+        const stars = [];
+        for (let i = 0; i < 60; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                color: 'white'
+            });
+        }
+
+        function sparkleStars() {
+            stars.forEach(star => {
+                star.color = ['white', '#ffeeaa', '#cccccc'][Math.floor(Math.random() * 3)];
+            });
+        }
+        setInterval(sparkleStars, 500);
+
+        // Top star
+        let starColor = 'gold';
+        function sparkleTopStar() {
+            starColor = ['gold', 'yellow', '#ffdd55'][Math.floor(Math.random() * 3)];
+        }
+        setInterval(sparkleTopStar, 400);
+
+        // Decorations (clickable)
+        const decorations = [];
+        const decorLayers = [
+            [{type: 'sparkle', x: 250, y: 140}],
+            [{type: 'ball', x: 230, y: 190}, {type: 'ball', x: 270, y: 190}],
+            [{type: 'ball', x: 225, y: 250}, {type: 'sparkle', x: 250, y: 250}, {type: 'ball', x: 275, y: 250}],
+            [{type: 'ball', x: 210, y: 310}, {type: 'sparkle', x: 235, y: 310}, {type: 'ball', x: 265, y: 310}, {type: 'sparkle', x: 290, y: 310}]
+        ];
+
+        let decorIndex = 0;
+        decorLayers.forEach(layer => {
+            layer.forEach(decor => {
+                decorations.push({
+                    ...decor,
+                    index: decorIndex++,
+                    color: decor.type === 'ball' ? ['red', 'gold', 'cyan'][Math.floor(Math.random() * 3)] : 'yellow'
+                });
+            });
+        });
+
+        function sparkleDecor() {
+            decorations.forEach(decor => {
+                if (decor.type === 'sparkle') {
+                    decor.color = ['yellow', 'white', '#ffeb99'][Math.floor(Math.random() * 3)];
+                }
+            });
+        }
+        setInterval(sparkleDecor, 400);
+
+        // Draw everything
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Background
+            ctx.fillStyle = '#001428';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Stars
+            stars.forEach(star => {
+                ctx.fillStyle = star.color;
+                ctx.fillRect(star.x, star.y, 2, 2);
+            });
+            
+            // Top star
+            ctx.font = '40px Arial';
+            ctx.fillStyle = starColor;
+            ctx.textAlign = 'center';
+            ctx.fillText('⭐', canvas.width / 2, 50);
+            
+            // Tree
+            const centerX = canvas.width / 2;
+            const treeSizes = [80, 130, 190, 260];
+            let y = 80;
+            ctx.fillStyle = '#0b6623';
+            treeSizes.forEach(width => {
+                ctx.beginPath();
+                ctx.moveTo(centerX - width/2, y + 90);
+                ctx.lineTo(centerX, y);
+                ctx.lineTo(centerX + width/2, y + 90);
+                ctx.closePath();
+                ctx.fill();
+                y += 60;
+            });
+            
+            // Trunk
+            ctx.fillStyle = '#8b5a2b';
+            ctx.fillRect(centerX - 25, 360, 50, 80);
+            
+            // Decorations
+            decorations.forEach(decor => {
+                if (decor.type === 'ball') {
+                    ctx.fillStyle = decor.color;
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(decor.x, decor.y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                } else {
+                    ctx.font = '18px Arial';
+                    ctx.fillStyle = decor.color;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('✦', decor.x, decor.y);
+                }
+            });
+            
+            // Text
+            ctx.font = 'bold 20px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText('🎁 Merry Christmas 🎁', centerX, canvas.height - 100);
+            
+            ctx.font = '14px Arial';
+            ctx.fillStyle = 'pink';
+            ctx.fillText('You are in my heart NGỌC TRÂN❤️', centerX, canvas.height - 65);
+            
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        // Click handler
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            decorations.forEach(decor => {
+                const distance = Math.sqrt((x - decor.x) ** 2 + (y - decor.y) ** 2);
+                if (distance < 15) {
+                    openLetter(decor.index);
+                }
+            });
+        });
+
+        // Letter modal
+        function openLetter(index) {
+            document.getElementById('wishText').textContent = wishes[index];
+            document.getElementById('letterModal').style.display = 'flex';
+        }
+
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            document.getElementById('letterModal').style.display = 'none';
+        });
+
+        document.getElementById('letterModal').addEventListener('click', (e) => {
+            if (e.target.id === 'letterModal') {
+                document.getElementById('letterModal').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
